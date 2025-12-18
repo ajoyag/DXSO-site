@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>DXSO Elite | XDR Security</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/tl.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- GSAP for Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root {
+            --brand-green: #00ff41;
+            --brand-green-dim: rgba(0, 255, 65, 0.1);
+            --brand-dark: #050a0e;
+            --brand-panel: #0e141a;
+            --text-main: #e0e0e0;
+            --text-muted: #94a3b8;
+            --border-color: #1f2a36;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--brand-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Noise Texture */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        h1, h2, h3, h4, .mono, .btn {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.04em;
+        }
+
+        a { text-decoration: none; color: inherit; transition: 0.3s; cursor: pointer; }
+
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+        .section { padding: 100px 0; position: relative; }
+        .text-green { color: var(--brand-green); }
+        .text-muted { color: var(--text-muted); }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 14px 28px;
+            background: rgba(0, 255, 65, 0.05);
+            color: var(--brand-green);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1px solid var(--brand-green);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: var(--brand-green);
+            color: var(--brand-dark);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            position: fixed;
+            top: 0; width: 100%; z-index: 1000;
+            background: rgba(5, 10, 14, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 20px 0;
+            backdrop-filter: blur(15px);
+        }
+        .nav-flex { display: flex; justify-content: space-between; align-items: center; }
+        .logo-img { height: 35px; width: auto; display: block; filter: invert(1); }
+        
+        .nav-links { display: flex; gap: 40px; }
+        .nav-link { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
+        .nav-link:hover { color: white; }
+
+        /* --- SERVICE HERO --- */
+        .service-hero {
+            padding: 180px 0 80px;
+            background: radial-gradient(circle at top right, rgba(0,255,65,0.05), transparent 40%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .breadcrumbs {
+            font-family: 'JetBrains Mono';
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            display: block;
+        }
+        .breadcrumbs span { color: var(--brand-green); }
+
+        .hero-title {
+            font-size: 4rem;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        /* --- ARCHITECTURE DIAGRAM SECTION --- */
+        .diagram-section {
+            background: #0b1015;
+            padding: 60px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .diagram-title { text-align: center; color: white; margin-bottom: 40px; font-size: 1.5rem; }
+        
+        .arch-container {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .arch-svg {
+            width: 100%;
+            max-width: 850px;
+            height: auto;
+            min-width: 600px;
+        }
+
+        /* SVG Styles */
+        .svg-box { fill: #161b22; stroke: #333; stroke-width: 2; rx: 4; }
+        .svg-box-main { fill: #0f161b; stroke: var(--brand-green); stroke-width: 2; rx: 6; }
+        .svg-text { font-family: 'Inter', sans-serif; font-size: 14px; fill: white; text-anchor: middle; font-weight: 500; }
+        .svg-text-title { font-family: 'JetBrains Mono', monospace; font-size: 16px; fill: var(--brand-green); text-anchor: middle; font-weight: 700; }
+        .svg-text-sub { font-family: 'Inter', sans-serif; font-size: 11px; fill: #888; text-anchor: middle; }
+        
+        /* Flow Animations */
+        .flow-solid {
+            stroke: var(--brand-green);
+            stroke-width: 2;
+            stroke-dasharray: 10;
+            animation: flowForward 1.5s linear infinite;
+        }
+        .flow-dashed {
+            stroke: #666;
+            stroke-width: 1.5;
+            stroke-dasharray: 6;
+            animation: flowReverse 1.5s linear infinite;
+        }
+
+        @keyframes flowForward { to { stroke-dashoffset: -20; } } 
+        @keyframes flowReverse { to { stroke-dashoffset: 20; } }
+
+        /* --- KEY FEATURES GRID --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: var(--brand-panel);
+            border: 1px solid var(--border-color);
+            padding: 35px;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .feature-card:hover {
+            border-color: var(--brand-green);
+            transform: translateY(-5px);
+        }
+        .feat-icon { font-size: 2rem; margin-bottom: 15px; color: var(--brand-green); }
+        .feat-title { color: white; font-size: 1.2rem; margin-bottom: 10px; }
+        .feat-text { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* --- SPECS TABLE --- */
+        .specs-wrapper {
+            margin-top: 60px;
+            border: 1px solid var(--border-color);
+            background: #0b1015;
+            border-radius: 4px;
+        }
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .spec-row:last-child { border-bottom: none; }
+        .spec-label { font-family: 'JetBrains Mono'; color: var(--text-muted); }
+        .spec-value { color: white; font-weight: 600; text-align: right; }
+
+        /* --- CONTACT CTA --- */
+        .cta-section {
+            background: linear-gradient(180deg, var(--brand-panel) 0%, var(--brand-dark) 100%);
+            text-align: center;
+        }
+
+        /* --- FOOTER --- */
+        footer { border-top: 1px solid var(--border-color); padding: 80px 0 30px; background: #020406; }
+        .footer-cols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
+        .footer h5 { color: white; margin-bottom: 20px; font-size: 0.9rem; letter-spacing: 1px; }
+        .footer li { margin-bottom: 10px; }
+        .footer a { color: var(--text-muted); font-size: 0.9rem; transition: 0.2s; }
+        .footer a:hover { color: var(--brand-green); }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .nav-links { display: none; }
+            .footer-cols { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Nav -->
+    <nav class="navbar">
+        <div class="container nav-flex">
+            <a href="index.html"><img src="assets/images/logo.png" alt="DXSO Logo" class="logo-img"></a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="service-protect.html" class="nav-link">Protect</a>
+                <a href="service-elite.html" class="nav-link" style="color:white; border-bottom: 1px solid var(--brand-green);">Elite</a>
+                <a href="service-premium.html" class="nav-link">Premium</a>
+                <a href="index.html#contact" class="nav-link">Contact</a>
+            </div>
+            <a href="portal-login.html" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.8rem;">Client Portal</a>
+        </div>
+    </nav>
+
+    <!-- Service Hero -->
+    <header class="service-hero">
+        <div class="container">
+            <a href="index.html" class="breadcrumbs">Services / <span id="service-crumb">DXSO Elite</span></a>
+            <h1 class="hero-title gs-up">DXSO Elite</h1>
+            <p class="hero-desc gs-up">
+                Intermediate Security with XDR. Extends endpoint security with advanced detection, correlation, and visibility across multiple layers (Endpoint, Network, Cloud, Email). Best for Mid-Market organizations.
+            </p>
+            <a href="index.html#contact" class="btn gs-up">Get Elite Tier</a>
+        </div>
+    </header>
+
+    <!-- Architecture Diagram Section -->
+    <section class="diagram-section gs-up">
+        <div class="container">
+            <h2 class="diagram-title mono">XDR Architecture Overview</h2>
+            <div class="arch-container">
+                <!-- SVG Diagram based on Mermaid structure -->
+                <svg class="arch-svg" viewBox="0 0 850 550" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#00ff41" />
+                        </marker>
+                        <marker id="arrowGray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#666" />
+                        </marker>
+                    </defs>
+
+                    <!-- Connections: Bottom to Middle (Telemetry UP) -->
+                    <!-- D1 (Endpoint) to XDR -->
+                    <path d="M150,450 L150,400 L425,400 L425,350" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <!-- D2 (Email) to XDR -->
+                    <path d="M330,450 L330,400 L425,400" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <!-- D3 (Network) to XDR -->
+                    <path d="M510,450 L510,400 L425,400" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <!-- D4 (Cloud) to XDR -->
+                    <path d="M690,450 L690,400 L425,400" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- Connection: Side (Intel) to Middle (Enrichment) -->
+                    <path d="M120,275 L200,275" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    
+                    <!-- Connection: Middle to Top (Alerts UP) -->
+                    <path d="M425,200 L425,150" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- Response Flow (Dashed DOWN) -->
+                    <!-- Top to Middle -->
+                    <path d="M445,150 L445,200" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <!-- Middle to D1..D4 -->
+                    <path d="M425,350 L425,380 L150,380 L150,450" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <path d="M425,350 L425,380 L330,380 L330,450" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <path d="M425,350 L425,380 L510,380 L510,450" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <path d="M425,350 L425,380 L690,380 L690,450" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+
+
+                    <!-- BOTTOM LAYER: Telemetry Sources -->
+                    <rect x="80" y="450" width="140" height="60" class="svg-box" />
+                    <text x="150" y="485" class="svg-text">Endpoint</text>
+
+                    <rect x="260" y="450" width="140" height="60" class="svg-box" />
+                    <text x="330" y="485" class="svg-text">Email</text>
+
+                    <rect x="440" y="450" width="140" height="60" class="svg-box" />
+                    <text x="510" y="485" class="svg-text">Network</text>
+
+                    <rect x="620" y="450" width="140" height="60" class="svg-box" />
+                    <text x="690" y="485" class="svg-text">Cloud / SaaS</text>
+
+
+                    <!-- MIDDLE LAYER: XDR Analytics -->
+                    <rect x="200" y="200" width="450" height="150" class="svg-box-main" />
+                    <text x="425" y="230" class="svg-text-title">XDR Analytics Layer</text>
+
+                    <!-- XDR Sub-functions -->
+                    <rect x="220" y="250" width="130" height="40" class="svg-box" style="stroke-width:1"/>
+                    <text x="285" y="275" class="svg-text-sub">Cross-Correlation</text>
+
+                    <rect x="360" y="250" width="130" height="40" class="svg-box" style="stroke-width:1"/>
+                    <text x="425" y="275" class="svg-text-sub">Intel Enrichment</text>
+
+                    <rect x="500" y="250" width="130" height="40" class="svg-box" style="stroke-width:1"/>
+                    <text x="565" y="275" class="svg-text-sub">Detection Logic</text>
+
+
+                    <!-- SIDE LAYER: Threat Intel -->
+                    <rect x="10" y="245" width="110" height="60" class="svg-box" style="stroke: #00ff41"/>
+                    <text x="65" y="270" class="svg-text-sub" style="fill:#00ff41">Threat Intel</text>
+                    <text x="65" y="285" class="svg-text-sub">Feeds</text>
+
+
+                    <!-- TOP LAYER: Security Management -->
+                    <rect x="250" y="20" width="350" height="130" class="svg-box" stroke-dasharray="5,5" />
+                    <text x="425" y="50" class="svg-text-title" fill="white">Central Management</text>
+
+                    <!-- Management Sub-functions -->
+                    <rect x="270" y="70" width="100" height="30" class="svg-box" style="stroke:none; fill:#222"/>
+                    <text x="320" y="90" class="svg-text-sub">Dashboards</text>
+                    <rect x="375" y="70" width="100" height="30" class="svg-box" style="stroke:none; fill:#222"/>
+                    <text x="425" y="90" class="svg-text-sub">Incidents</text>
+                    <rect x="480" y="70" width="100" height="30" class="svg-box" style="stroke:none; fill:#222"/>
+                    <text x="530" y="90" class="svg-text-sub">Response</text>
+
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Capabilities -->
+    <section class="section">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 40px;">Core Capabilities</h2>
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🎯</div>
+                    <h3 class="feat-title">Advanced EDR</h3>
+                    <p class="feat-text">Beyond basic antivirus. Records and analyzes endpoint activity to detect complex, multi-stage attacks.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🌐</div>
+                    <h3 class="feat-title">Unified XDR</h3>
+                    <p class="feat-text">Extends visibility beyond endpoints to Network, Cloud, and Email layers for holistic detection.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🗺️</div>
+                    <h3 class="feat-title">MITRE Mapping</h3>
+                    <p class="feat-text">Detections are mapped to the MITRE ATT&CK framework, giving you context on attacker tactics.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🧠</div>
+                    <h3 class="feat-title">Threat Intel</h3>
+                    <p class="feat-text">Automatic enrichment of alerts with global threat intelligence to reduce false positives.</p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🔍</div>
+                    <h3 class="feat-title">Vulnerability Scan</h3>
+                    <p class="feat-text">Regular scanning of your environment to identify and prioritize unpatched vulnerabilities.</p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🤖</div>
+                    <h3 class="feat-title">Guided Response</h3>
+                    <p class="feat-text">Automated actions and step-by-step guidance for your team to neutralize threats quickly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Specifications -->
+    <section class="section" style="background: #080c10;">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 20px;">Technical Specifications</h2>
+            <p class="text-muted">Operational parameters for DXSO Elite.</p>
+            
+            <div class="specs-wrapper gs-up">
+                <div class="spec-row">
+                    <span class="spec-label">Target Audience</span>
+                    <span class="spec-value">Mid-Market / Growing Enterprise</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Operational Model</span>
+                    <span class="spec-value">Assisted Security Operations</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Log Retention</span>
+                    <span class="spec-value">90 Days</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Response SLA</span>
+                    <span class="spec-value">Priority (&lt; 4 Hours)</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Compliance Reporting</span>
+                    <span class="spec-value">Standard (ISO/SOC2 Ready)</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Vulnerability Management</span>
+                    <span class="spec-value">Weekly Assessment</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="contact" class="section cta-section" style="background: linear-gradient(180deg, #0e141a 0%, #050a0e 100%); text-align: center;">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 20px;">Upgrade to Elite Security</h2>
+            <p class="text-muted" style="margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Gain visibility across your entire digital estate with XDR.
+            </p>
+            <a href="index.html#contact" class="btn">Contact Sales</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-cols">
+                <div>
+                    <a href="index.html" class="logo">[ DXSO ]</a>
+                    <p class="text-muted" style="margin-top: 20px; max-width: 300px; font-size: 0.85rem;">
+                        Managed security operations for the modern enterprise. Zero trust architecture for maximum resilience.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="mono">SITEMAP</h5>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#services">Services</a></li>
+                        <li><a href="index.html#architecture">Architecture</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="mono">LEGAL</h5>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">SLA Agreement</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #1f2a36; margin-top: 60px; padding-top: 20px; text-align: center; color: #555; font-size: 0.8rem;">
+                &copy; 2025 DXSO Cybersecurity. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Standard Fade Up Animation
+        gsap.utils.toArray('.gs-up').forEach(el => {
+            gsap.from(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 90%",
+                },
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+</html>

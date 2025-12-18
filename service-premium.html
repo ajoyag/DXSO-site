@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>DXSO Premium | Managed SOC & SIEM</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- GSAP for Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root {
+            --brand-green: #00ff41;
+            --brand-green-dim: rgba(0, 255, 65, 0.1);
+            --brand-dark: #050a0e;
+            --brand-panel: #0e141a;
+            --text-main: #e0e0e0;
+            --text-muted: #94a3b8;
+            --border-color: #1f2a36;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--brand-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Noise Texture */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        h1, h2, h3, h4, .mono, .btn {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.04em;
+        }
+
+        a { text-decoration: none; color: inherit; transition: 0.3s; cursor: pointer; }
+
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+        .section { padding: 100px 0; position: relative; }
+        .text-green { color: var(--brand-green); }
+        .text-muted { color: var(--text-muted); }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 14px 28px;
+            background: rgba(0, 255, 65, 0.05);
+            color: var(--brand-green);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1px solid var(--brand-green);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: var(--brand-green);
+            color: var(--brand-dark);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            position: fixed;
+            top: 0; width: 100%; z-index: 1000;
+            background: rgba(5, 10, 14, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 20px 0;
+            backdrop-filter: blur(15px);
+        }
+        .nav-flex { display: flex; justify-content: space-between; align-items: center; }
+        .logo-img { height: 35px; width: auto; display: block; filter: invert(1); }
+        
+        .nav-links { display: flex; gap: 40px; }
+        .nav-link { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
+        .nav-link:hover { color: white; }
+
+        /* --- SERVICE HERO --- */
+        .service-hero {
+            padding: 180px 0 80px;
+            background: radial-gradient(circle at top right, rgba(0,255,65,0.05), transparent 40%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .breadcrumbs {
+            font-family: 'JetBrains Mono';
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            display: block;
+        }
+        .breadcrumbs span { color: var(--brand-green); }
+
+        .hero-title {
+            font-size: 4rem;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        /* --- ARCHITECTURE DIAGRAM SECTION --- */
+        .diagram-section {
+            background: #0b1015;
+            padding: 60px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .diagram-title { text-align: center; color: white; margin-bottom: 40px; font-size: 1.5rem; }
+        
+        .arch-container {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .arch-svg {
+            width: 100%;
+            max-width: 900px;
+            height: auto;
+            min-width: 600px;
+        }
+
+        /* SVG Styles */
+        .svg-box { fill: #161b22; stroke: #333; stroke-width: 2; rx: 4; }
+        .svg-box-main { fill: #0f161b; stroke: var(--brand-green); stroke-width: 2; rx: 6; }
+        .svg-text { font-family: 'Inter', sans-serif; font-size: 13px; fill: white; text-anchor: middle; font-weight: 500; }
+        .svg-text-title { font-family: 'JetBrains Mono', monospace; font-size: 15px; fill: var(--brand-green); text-anchor: middle; font-weight: 700; }
+        .svg-text-sub { font-family: 'Inter', sans-serif; font-size: 11px; fill: #888; text-anchor: middle; }
+        
+        /* Flow Animations */
+        .flow-solid {
+            stroke: var(--brand-green);
+            stroke-width: 2;
+            stroke-dasharray: 10;
+            animation: flowForward 1.5s linear infinite;
+        }
+        .flow-dashed {
+            stroke: #666;
+            stroke-width: 1.5;
+            stroke-dasharray: 6;
+            animation: flowReverse 1.5s linear infinite;
+        }
+
+        @keyframes flowForward { to { stroke-dashoffset: -20; } } 
+        @keyframes flowReverse { to { stroke-dashoffset: 20; } }
+
+        /* --- KEY FEATURES GRID --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: var(--brand-panel);
+            border: 1px solid var(--border-color);
+            padding: 35px;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .feature-card:hover {
+            border-color: var(--brand-green);
+            transform: translateY(-5px);
+        }
+        .feat-icon { font-size: 2rem; margin-bottom: 15px; color: var(--brand-green); }
+        .feat-title { color: white; font-size: 1.2rem; margin-bottom: 10px; }
+        .feat-text { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* --- SPECS TABLE --- */
+        .specs-wrapper {
+            margin-top: 60px;
+            border: 1px solid var(--border-color);
+            background: #0b1015;
+            border-radius: 4px;
+        }
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .spec-row:last-child { border-bottom: none; }
+        .spec-label { font-family: 'JetBrains Mono'; color: var(--text-muted); }
+        .spec-value { color: white; font-weight: 600; text-align: right; }
+
+        /* --- CONTACT CTA --- */
+        .cta-section {
+            background: linear-gradient(180deg, var(--brand-panel) 0%, var(--brand-dark) 100%);
+            text-align: center;
+        }
+
+        /* --- FOOTER --- */
+        footer { border-top: 1px solid var(--border-color); padding: 80px 0 30px; background: #020406; }
+        .footer-cols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
+        .footer h5 { color: white; margin-bottom: 20px; font-size: 0.9rem; letter-spacing: 1px; }
+        .footer li { margin-bottom: 10px; }
+        .footer a { color: var(--text-muted); font-size: 0.9rem; transition: 0.2s; }
+        .footer a:hover { color: var(--brand-green); }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .nav-links { display: none; }
+            .footer-cols { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Nav -->
+    <nav class="navbar">
+        <div class="container nav-flex">
+            <a href="index.html"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Cybersecurity.png" alt="DXSO Logo" class="logo-img"></a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="service-protect.html" class="nav-link">Protect</a>
+                <a href="service-elite.html" class="nav-link">Elite</a>
+                <a href="service-premium.html" class="nav-link" style="color:white; border-bottom: 1px solid var(--brand-green);">Premium</a>
+                <a href="index.html#contact" class="nav-link">Contact</a>
+            </div>
+            <a href="index.html#contact" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.8rem;">Client Portal</a>
+        </div>
+    </nav>
+
+    <!-- Service Hero -->
+    <header class="service-hero">
+        <div class="container">
+            <a href="index.html" class="breadcrumbs">Services / <span id="service-crumb">DXSO Premium</span></a>
+            <h1 class="hero-title gs-up">DXSO Premium</h1>
+            <p class="hero-desc gs-up">
+                Advanced SOC, SIEM & SOAR. Full-scale managed security operations delivered by DXSO SOC experts, providing 24/7 monitoring, advanced threat hunting, and automated incident response.
+            </p>
+            <a href="index.html#contact" class="btn gs-up">Get Premium Tier</a>
+        </div>
+    </header>
+
+    <!-- Architecture Diagram Section -->
+    <section class="diagram-section gs-up">
+        <div class="container">
+            <h2 class="diagram-title mono">Managed Security Operations Architecture</h2>
+            <div class="arch-container">
+                <!-- SVG Diagram based on Mermaid structure -->
+                <svg class="arch-svg" viewBox="0 0 900 650" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#00ff41" />
+                        </marker>
+                        <marker id="arrowGray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#666" />
+                        </marker>
+                    </defs>
+
+                    <!-- Connections: Bottom to Layer 2 (Collection) -->
+                    <path d="M100,550 L100,520 L450,520 L450,480" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <path d="M260,550 L260,520 L450,520 L450,480" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <path d="M420,550 L420,520 L450,520 L450,480" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <path d="M580,550 L580,520 L450,520 L450,480" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <path d="M740,550 L740,520 L450,520 L450,480" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- Layer 2 to Layer 3 (Collection -> SIEM) -->
+                    <path d="M450,380 L450,350" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- Layer 3 to Layer 4 (SIEM -> SOAR) -->
+                    <path d="M450,250 L450,220" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- Layer 3 to Side (SIEM <-> Intel) -->
+                    <path d="M250,300 L180,300" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <path d="M180,300 L250,300" class="flow-solid" fill="none" marker-end="url(#arrowGreen)" stroke-dasharray="5,5"/>
+
+                    <!-- Layer 3 & 4 to Top (Data to SOC) -->
+                    <path d="M650,300 L750,300 L750,150" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/> <!-- SIEM to SOC -->
+                    <path d="M650,170 L750,170 L750,150" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/> <!-- SOAR to SOC -->
+
+                    <!-- SOC to Output (Reporting) -->
+                    <path d="M750,50 L850,50" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- SOAR Response Flow (Dashed DOWN to Sources) -->
+                    <path d="M250,170 L100,170 L100,550" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <path d="M250,170 L100,170 L260,170 L260,550" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <path d="M250,170 L100,170 L420,170 L420,550" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <path d="M250,170 L100,170 L580,170 L580,550" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    
+                    
+                    <!-- BOTTOM LAYER: Sources -->
+                    <rect x="50" y="550" width="100" height="50" class="svg-box" /> <text x="100" y="580" class="svg-text">Endpoints</text>
+                    <rect x="210" y="550" width="100" height="50" class="svg-box" /> <text x="260" y="580" class="svg-text">Servers</text>
+                    <rect x="370" y="550" width="100" height="50" class="svg-box" /> <text x="420" y="580" class="svg-text">Network</text>
+                    <rect x="530" y="550" width="100" height="50" class="svg-box" /> <text x="580" y="580" class="svg-text">Cloud/SaaS</text>
+                    <rect x="690" y="550" width="100" height="50" class="svg-box" /> <text x="740" y="580" class="svg-text">OT/IoT</text>
+
+                    <!-- LAYER 2: Collection -->
+                    <rect x="250" y="380" width="400" height="100" class="svg-box" />
+                    <text x="450" y="410" class="svg-text-title" fill="white">Log & Event Collection</text>
+                    <text x="350" y="440" class="svg-text-sub">Agents</text>
+                    <text x="450" y="440" class="svg-text-sub">Syslog</text>
+                    <text x="550" y="440" class="svg-text-sub">API Ingestion</text>
+
+                    <!-- LAYER 3: SIEM -->
+                    <rect x="250" y="250" width="400" height="100" class="svg-box-main" />
+                    <text x="450" y="280" class="svg-text-title">SIEM Platform</text>
+                    <text x="320" y="310" class="svg-text-sub">Normalization</text>
+                    <text x="400" y="310" class="svg-text-sub">Correlation</text>
+                    <text x="480" y="310" class="svg-text-sub">UEBA</text>
+                    <text x="560" y="310" class="svg-text-sub">Analytics</text>
+
+                    <!-- LAYER 4: SOAR -->
+                    <rect x="250" y="120" width="400" height="100" class="svg-box" />
+                    <text x="450" y="150" class="svg-text-title" fill="white">SOAR Platform</text>
+                    <text x="320" y="180" class="svg-text-sub">Playbooks</text>
+                    <text x="450" y="180" class="svg-text-sub">Automated Actions</text>
+                    <text x="580" y="180" class="svg-text-sub">Workflows</text>
+
+                    <!-- SIDE LAYER: Threat Intel -->
+                    <rect x="50" y="270" width="130" height="60" class="svg-box" style="stroke: #00ff41"/>
+                    <text x="115" y="305" class="svg-text" style="fill:#00ff41">Threat Intel</text>
+
+                    <!-- TOP LAYER: SOC -->
+                    <rect x="300" y="10" width="400" height="80" class="svg-box" style="stroke-dasharray:5,5" />
+                    <text x="500" y="40" class="svg-text-title" fill="white">DXSO SOC (8x5 + On-Demand)</text>
+                    <text x="360" y="65" class="svg-text-sub">Monitoring</text>
+                    <text x="450" y="65" class="svg-text-sub">Hunting</text>
+                    <text x="540" y="65" class="svg-text-sub">Response</text>
+                    <text x="630" y="65" class="svg-text-sub">Investigation</text>
+                    
+                    <!-- Output Layer -->
+                    <rect x="850" y="20" width="50" height="60" class="svg-box" />
+                    <text x="875" y="55" class="svg-text-sub" transform="rotate(90, 875, 55)">Reports</text>
+
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Capabilities -->
+    <section class="section">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 40px;">Core Capabilities</h2>
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">⚡</div>
+                    <h3 class="feat-title">Unified SIEM</h3>
+                    <p class="feat-text">Centralized log management and correlation across your entire infrastructure for deep visibility.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🤖</div>
+                    <h3 class="feat-title">SOAR Automation</h3>
+                    <p class="feat-text">Automated playbooks respond to threats instantly, isolating hosts and blocking IPs without human delay.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🕵️</div>
+                    <h3 class="feat-title">Threat Hunting</h3>
+                    <p class="feat-text">Proactive human-led hunting to find hidden threats that bypass automated controls.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">📊</div>
+                    <h3 class="feat-title">UEBA</h3>
+                    <p class="feat-text">User and Entity Behavior Analytics to detect insider threats and compromised credentials.</p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🔥</div>
+                    <h3 class="feat-title">Incident Response</h3>
+                    <p class="feat-text">Full forensic analysis and remediation support when a breach occurs.</p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">📈</div>
+                    <h3 class="feat-title">Custom Reporting</h3>
+                    <p class="feat-text">Tailored dashboards for CISOs and technical teams to track KPIs and compliance.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Specifications -->
+    <section class="section" style="background: #080c10;">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 20px;">Technical Specifications</h2>
+            <p class="text-muted">Operational parameters for DXSO Premium.</p>
+            
+            <div class="specs-wrapper gs-up">
+                <div class="spec-row">
+                    <span class="spec-label">Target Audience</span>
+                    <span class="spec-value">Enterprise & Government</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Operational Model</span>
+                    <span class="spec-value">Fully Managed MSSP</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Log Retention</span>
+                    <span class="spec-value">1 Year + (Hot/Cold)</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Response SLA</span>
+                    <span class="spec-value">Critical &lt; 15 Minutes</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Compliance Reporting</span>
+                    <span class="spec-value">Full Suite (PCI, HIPAA, NIST)</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Account Management</span>
+                    <span class="spec-value">Dedicated Technical Account Manager</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="contact" class="section cta-section" style="background: linear-gradient(180deg, #0e141a 0%, #050a0e 100%); text-align: center;">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 20px;">Deploy Full-Spectrum Defense</h2>
+            <p class="text-muted" style="margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Empower your organization with military-grade SOC capabilities.
+            </p>
+            <a href="index.html#contact" class="btn">Contact Sales</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-cols">
+                <div>
+                    <a href="index.html" class="logo">[ DXSO ]</a>
+                    <p class="text-muted" style="margin-top: 20px; max-width: 300px; font-size: 0.85rem;">
+                        Managed security operations for the modern enterprise. Zero trust architecture for maximum resilience.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="mono">SITEMAP</h5>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#services">Services</a></li>
+                        <li><a href="index.html#architecture">Architecture</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="mono">LEGAL</h5>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">SLA Agreement</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #1f2a36; margin-top: 60px; padding-top: 20px; text-align: center; color: #555; font-size: 0.8rem;">
+                &copy; 2025 DXSO Cybersecurity. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Standard Fade Up Animation
+        gsap.utils.toArray('.gs-up').forEach(el => {
+            gsap.from(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 90%",
+                },
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+</html>

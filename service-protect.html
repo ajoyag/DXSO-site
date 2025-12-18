@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>DXSO Protect | Endpoint Security</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- GSAP for Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root {
+            --brand-green: #00ff41;
+            --brand-green-dim: rgba(0, 255, 65, 0.1);
+            --brand-dark: #050a0e;
+            --brand-panel: #0e141a;
+            --text-main: #e0e0e0;
+            --text-muted: #94a3b8;
+            --border-color: #1f2a36;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--brand-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Noise Texture */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        h1, h2, h3, h4, .mono, .btn {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.04em;
+        }
+
+        a { text-decoration: none; color: inherit; transition: 0.3s; cursor: pointer; }
+
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+        .section { padding: 100px 0; position: relative; }
+        .text-green { color: var(--brand-green); }
+        .text-muted { color: var(--text-muted); }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 14px 28px;
+            background: rgba(0, 255, 65, 0.05);
+            color: var(--brand-green);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 1px solid var(--brand-green);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: var(--brand-green);
+            color: var(--brand-dark);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            position: fixed;
+            top: 0; width: 100%; z-index: 1000;
+            background: rgba(5, 10, 14, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 20px 0;
+            backdrop-filter: blur(15px);
+        }
+        .nav-flex { display: flex; justify-content: space-between; align-items: center; }
+        /* Logo Image Placeholder - Replace with your actual image */
+        .logo-img { height: 35px; width: auto; display: block; filter: invert(1); }
+        
+        .nav-links { display: flex; gap: 40px; }
+        .nav-link { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
+        .nav-link:hover { color: white; }
+
+        /* --- SERVICE HERO --- */
+        .service-hero {
+            padding: 180px 0 80px;
+            background: radial-gradient(circle at top right, rgba(0,255,65,0.05), transparent 40%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .breadcrumbs {
+            font-family: 'JetBrains Mono';
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            display: block;
+        }
+        .breadcrumbs span { color: var(--brand-green); }
+
+        .hero-title {
+            font-size: 4rem;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        /* --- ARCHITECTURE DIAGRAM SECTION --- */
+        .diagram-section {
+            background: #0b1015;
+            padding: 60px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .diagram-title { text-align: center; color: white; margin-bottom: 40px; font-size: 1.5rem; }
+        
+        .arch-container {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .arch-svg {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            min-width: 600px; /* Ensures readablity on mobile scroll */
+        }
+
+        /* SVG Styles */
+        .svg-box { fill: #161b22; stroke: #333; stroke-width: 2; rx: 4; }
+        .svg-box-main { fill: #0f161b; stroke: var(--brand-green); stroke-width: 2; rx: 6; }
+        .svg-text { font-family: 'Inter', sans-serif; font-size: 14px; fill: white; text-anchor: middle; font-weight: 500; }
+        .svg-text-title { font-family: 'JetBrains Mono', monospace; font-size: 16px; fill: var(--brand-green); text-anchor: middle; font-weight: 700; }
+        .svg-text-sub { font-family: 'Inter', sans-serif; font-size: 11px; fill: #888; text-anchor: middle; }
+        
+        /* Flow Animations */
+        .flow-solid {
+            stroke: var(--brand-green);
+            stroke-width: 2;
+            stroke-dasharray: 10;
+            animation: flowUp 1.5s linear infinite;
+        }
+        .flow-dashed {
+            stroke: #666;
+            stroke-width: 1.5;
+            stroke-dasharray: 6;
+            animation: flowDown 1.5s linear infinite;
+        }
+
+        @keyframes flowUp { to { stroke-dashoffset: 20; } } /* Visual flow up */
+        @keyframes flowDown { to { stroke-dashoffset: -12; } } /* Visual flow down */
+
+        /* --- KEY FEATURES GRID --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: var(--brand-panel);
+            border: 1px solid var(--border-color);
+            padding: 35px;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .feature-card:hover {
+            border-color: var(--brand-green);
+            transform: translateY(-5px);
+        }
+        .feat-icon { font-size: 2rem; margin-bottom: 15px; color: var(--brand-green); }
+        .feat-title { color: white; font-size: 1.2rem; margin-bottom: 10px; }
+        .feat-text { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* --- SPECS TABLE --- */
+        .specs-wrapper {
+            margin-top: 60px;
+            border: 1px solid var(--border-color);
+            background: #0b1015;
+            border-radius: 4px;
+        }
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .spec-row:last-child { border-bottom: none; }
+        .spec-label { font-family: 'JetBrains Mono'; color: var(--text-muted); }
+        .spec-value { color: white; font-weight: 600; text-align: right; }
+
+        /* --- FOOTER --- */
+        footer { border-top: 1px solid var(--border-color); padding: 80px 0 30px; background: #020406; }
+        .footer-cols { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
+        .footer h5 { color: white; margin-bottom: 20px; font-size: 0.9rem; letter-spacing: 1px; }
+        .footer li { margin-bottom: 10px; }
+        .footer a { color: var(--text-muted); font-size: 0.9rem; transition: 0.2s; }
+        .footer a:hover { color: var(--brand-green); }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .nav-links { display: none; }
+            .footer-cols { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Nav -->
+    <nav class="navbar">
+        <div class="container nav-flex">
+            <!-- Logo Image Placeholder -->
+            <a href="index.html"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Cybersecurity.png" alt="DXSO Logo" class="logo-img"></a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="service-protect.html" class="nav-link" style="color:white; border-bottom: 1px solid var(--brand-green);">Protect</a>
+                <a href="service-elite.html" class="nav-link">Elite</a>
+                <a href="service-premium.html" class="nav-link">Premium</a>
+                <a href="index.html#contact" class="nav-link">Contact</a>
+            </div>
+            <a href="index.html#contact" class="btn btn-outline" style="padding: 10px 20px; font-size: 0.8rem;">Client Portal</a>
+        </div>
+    </nav>
+
+    <!-- Service Hero -->
+    <header class="service-hero">
+        <div class="container">
+            <a href="index.html" class="breadcrumbs">Services / <span id="service-crumb">DXSO Protect</span></a>
+            <h1 class="hero-title gs-up">DXSO Protect</h1>
+            <p class="hero-desc gs-up">
+                Foundational endpoint protection against malware, ransomware, and exploit-based threats with centralized cloud management. Best suited for SMBs looking for reliable, self-managed security.
+            </p>
+            <a href="index.html#contact" class="btn gs-up">Get Protect Tier</a>
+        </div>
+    </header>
+
+    <!-- Architecture Diagram Section -->
+    <section class="diagram-section gs-up">
+        <div class="container">
+            <h2 class="diagram-title mono">Endpoint Security Architecture</h2>
+            <div class="arch-container">
+                <!-- SVG Diagram matching provided structure -->
+                <svg class="arch-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#00ff41" />
+                        </marker>
+                        <marker id="arrowGray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#666" />
+                        </marker>
+                    </defs>
+
+                    <!-- Connections: Bottom to Middle (Telemetry UP) -->
+                    <!-- Windows to Agent -->
+                    <path d="M200,500 L200,450 L400,450 L400,400" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <!-- Linux to Agent -->
+                    <path d="M400,500 L400,400" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+                    <!-- Mac to Agent -->
+                    <path d="M600,500 L600,450 L400,450 L400,400" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- Connections: Middle to Bottom (Action DOWN) -->
+                    <!-- Agent to Windows -->
+                    <path d="M380,400 L380,430 L180,430 L180,500" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <!-- Agent to Linux -->
+                    <path d="M380,400 L380,500" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+                    <!-- Agent to Mac -->
+                    <path d="M420,400 L420,430 L620,430 L620,500" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+
+
+                    <!-- Connections: Middle to Top (Logs UP) -->
+                    <path d="M420,250 L420,200 L400,200 L400,150" class="flow-solid" fill="none" marker-end="url(#arrowGreen)"/>
+
+                    <!-- Connections: Top to Middle (Policy DOWN) -->
+                    <path d="M380,150 L380,200 L400,200 L400,250" class="flow-dashed" fill="none" marker-end="url(#arrowGray)"/>
+
+
+                    <!-- BOTTOM LAYER: Endpoints -->
+                    <rect x="120" y="500" width="160" height="60" class="svg-box" />
+                    <text x="200" y="535" class="svg-text">Windows</text>
+
+                    <rect x="320" y="500" width="160" height="60" class="svg-box" />
+                    <text x="400" y="535" class="svg-text">Linux</text>
+
+                    <rect x="520" y="500" width="160" height="60" class="svg-box" />
+                    <text x="600" y="535" class="svg-text">macOS</text>
+
+                    <!-- MIDDLE LAYER: Agent -->
+                    <rect x="150" y="250" width="500" height="150" class="svg-box-main" />
+                    <text x="400" y="280" class="svg-text-title">Endpoint Protection & EDR Agent</text>
+                    
+                    <!-- Sub-functions inside Agent -->
+                    <rect x="170" y="300" width="100" height="40" class="svg-box" style="stroke-width:1"/>
+                    <text x="220" y="325" class="svg-text-sub">Malware Prev.</text>
+
+                    <rect x="290" y="300" width="100" height="40" class="svg-box" style="stroke-width:1"/>
+                    <text x="340" y="325" class="svg-text-sub">Ransomware</text>
+
+                    <rect x="410" y="300" width="100" height="40" class="svg-box" style="stroke-width:1"/>
+                    <text x="460" y="325" class="svg-text-sub">Behavior Mon.</text>
+
+                    <rect x="530" y="300" width="100" height="40" class="svg-box" style="stroke-width:1"/>
+                    <text x="580" y="325" class="svg-text-sub">Local Response</text>
+
+
+                    <!-- TOP LAYER: Central Management -->
+                    <rect x="200" y="50" width="400" height="100" class="svg-box" stroke-dasharray="5,5" />
+                    <text x="400" y="80" class="svg-text-title" fill="white">Centralized Management</text>
+                    
+                     <!-- Sub-functions inside Top -->
+                     <rect x="220" y="95" width="100" height="30" class="svg-box" style="stroke:none; fill:#222"/>
+                     <text x="270" y="115" class="svg-text-sub">Policies</text>
+                     <rect x="350" y="95" width="100" height="30" class="svg-box" style="stroke:none; fill:#222"/>
+                     <text x="400" y="115" class="svg-text-sub">Alerts</text>
+                     <rect x="480" y="95" width="100" height="30" class="svg-box" style="stroke:none; fill:#222"/>
+                     <text x="530" y="115" class="svg-text-sub">Status</text>
+                    
+                    <!-- Labels for Flows -->
+                    <text x="530" y="450" class="svg-text-sub" fill="#00ff41">Telemetry & Data</text>
+                    <text x="270" y="450" class="svg-text-sub" fill="#666">Action & Control</text>
+
+                    <text x="460" y="200" class="svg-text-sub" fill="#00ff41">Logs & Alerts</text>
+                    <text x="340" y="200" class="svg-text-sub" fill="#666">Policies</text>
+
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Capabilities -->
+    <section class="section">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 40px;">Core Capabilities</h2>
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🦠</div>
+                    <h3 class="feat-title">Antivirus & EPP</h3>
+                    <p class="feat-text">Next-generation antivirus that uses signatures and heuristics to block known malware instantly.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🧠</div>
+                    <h3 class="feat-title">Behavioral EDR</h3>
+                    <p class="feat-text">Endpoint Detection and Response that monitors process behavior to stop file-less attacks and scripts.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🛡️</div>
+                    <h3 class="feat-title">Exploit Prevention</h3>
+                    <p class="feat-text">Virtual patching and memory protection to stop attackers from utilizing zero-day vulnerabilities.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🚫</div>
+                    <h3 class="feat-title">Device Control</h3>
+                    <p class="feat-text">Control USBs and peripheral devices to prevent data exfiltration and physical malware entry.</p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">🌐</div>
+                    <h3 class="feat-title">Web Filtering</h3>
+                    <p class="feat-text">Block access to malicious URLs and phishing sites at the DNS level before they load.</p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="feature-card gs-up">
+                    <div class="feat-icon">☁️</div>
+                    <h3 class="feat-title">Cloud Console</h3>
+                    <p class="feat-text">Single pane of glass for managing policies, viewing alerts, and generating reports.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Specifications -->
+    <section class="section" style="background: #080c10;">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 20px;">Technical Specifications</h2>
+            <p class="text-muted">Operational details for DXSO Protect.</p>
+            
+            <div class="specs-wrapper gs-up">
+                <div class="spec-row">
+                    <span class="spec-label">Target Audience</span>
+                    <span class="spec-value">Small to Medium Businesses (SMB)</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Operational Model</span>
+                    <span class="spec-value">Self-Managed (SaaS)</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Log Retention</span>
+                    <span class="spec-value">30 Days</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Response SLA</span>
+                    <span class="spec-value">Standard Support (Business Hours)</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Compliance Reporting</span>
+                    <span class="spec-value">Basic Executive Reports</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Supported OS</span>
+                    <span class="spec-value">Windows, macOS, Linux, Android, iOS</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="contact" class="section cta-section" style="background: linear-gradient(180deg, #0e141a 0%, #050a0e 100%); text-align: center;">
+        <div class="container">
+            <h2 class="mono" style="color: white; margin-bottom: 20px;">Deploy DXSO Protect</h2>
+            <p class="text-muted" style="margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Secure your endpoints today with enterprise-grade technology tailored for growing businesses.
+            </p>
+            <a href="index.html#contact" class="btn">Contact Sales</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-cols">
+                <div>
+                    <a href="index.html" class="logo">[ DXSO ]</a>
+                    <p class="text-muted" style="margin-top: 20px; max-width: 300px; font-size: 0.85rem;">
+                        Managed security operations for the modern enterprise. Zero trust architecture for maximum resilience.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="mono">SITEMAP</h5>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#services">Services</a></li>
+                        <li><a href="index.html#architecture">Architecture</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="mono">LEGAL</h5>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">SLA Agreement</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div style="border-top: 1px solid #1f2a36; margin-top: 60px; padding-top: 20px; text-align: center; color: #555; font-size: 0.8rem;">
+                &copy; 2025 DXSO Cybersecurity. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Standard Fade Up Animation
+        gsap.utils.toArray('.gs-up').forEach(el => {
+            gsap.from(el, {
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 90%",
+                },
+                y: 30,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+</html>

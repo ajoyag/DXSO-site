@@ -235,11 +235,29 @@
             .nav-links { display: none; }
             .footer-cols { grid-template-columns: 1fr; }
         }
+
+        /* --- TACTICAL CURSOR HUD --- */
+        #tacticalCursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        /* Hide default cursor on desktop for high-precision feel */
+        @media (min-width: 1025px) {
+            html, body, a, button, .btn, h1, h2, .ind-card { 
+                cursor: none !important; 
+            }
+        }
     </style>
 </head>
 
 <body>
-
+    <canvas id="tacticalCursor"></canvas>
     <!-- Nav -->
     <nav class="navbar">
         <div class="container nav-flex">
@@ -504,6 +522,70 @@
                 ease: "power2.out"
             });
         });
+
+        // --- TACTICAL CURSOR ANIMATION ---
+        (function() {
+            const cursorCanvas = document.getElementById('tacticalCursor');
+            const cctx = cursorCanvas.getContext('2d');
+            
+            let mouseCoord = { x: 0, y: 0 };
+            let centerPlus = { x: 0, y: 0 }; 
+            let laggedRing = { x: 0, y: 0 }; 
+            let isHeadingHovered = false;
+            let cursorRadius = 10;
+
+            const resizeCursor = () => {
+                cursorCanvas.width = window.innerWidth;
+                cursorCanvas.height = window.innerHeight;
+            };
+            window.addEventListener('resize', resizeCursor);
+            resizeCursor();
+
+            window.addEventListener('mousemove', (e) => {
+                mouseCoord.x = e.clientX;
+                mouseCoord.y = e.clientY;
+                // Expands when hovering over any H1 or H2 heading
+                isHeadingHovered = !!e.target.closest('h1, h2');
+            });
+
+            function animateCursor() {
+                cctx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+
+                // Movement Physics
+                centerPlus.x += (mouseCoord.x - centerPlus.x) * 0.6; 
+                centerPlus.y += (mouseCoord.y - centerPlus.y) * 0.6;
+                
+                laggedRing.x += (mouseCoord.x - laggedRing.x) * 0.15; 
+                laggedRing.y += (mouseCoord.y - laggedRing.y) * 0.15;
+
+                // Size Transition logic
+                const targetRad = isHeadingHovered ? 50 : 10;
+                cursorRadius += (targetRad - cursorRadius) * 0.15;
+
+                const cursorColor = '#ffffff';
+
+                // 1. Draw The Lagged Ring (The Scanner)
+                cctx.beginPath();
+                cctx.arc(laggedRing.x, laggedRing.y, cursorRadius, 0, Math.PI * 2);
+                cctx.strokeStyle = cursorColor;
+                cctx.lineWidth = 1;
+                cctx.globalAlpha = isHeadingHovered ? 0.6 : 0.3;
+                cctx.stroke();
+
+                // 2. Draw The Snappy Plus (The Reticle)
+                cctx.beginPath();
+                cctx.strokeStyle = cursorColor;
+                cctx.lineWidth = 1.5;
+                cctx.globalAlpha = 1;
+                const pSize = 6;
+                cctx.moveTo(centerPlus.x, centerPlus.y - pSize); cctx.lineTo(centerPlus.x, centerPlus.y + pSize);
+                cctx.moveTo(centerPlus.x - pSize, centerPlus.y); cctx.lineTo(centerPlus.x + pSize, centerPlus.y);
+                cctx.stroke();
+
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+        })();
     </script>
 </body>
 </html>
